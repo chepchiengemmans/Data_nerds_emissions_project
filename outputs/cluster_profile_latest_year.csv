@@ -1,0 +1,3 @@
+cluster,co2_per_capita,co2_growth_prct,gdp,population,primary_energy_consumption,energy_per_capita,coal_co2,oil_co2,cement_co2,flaring_co2,methane,nitrous_oxide
+0,2.987,2.169,32240049042.0,6736217.0,58.186,12290.366,2.367,5.402,0.445,0.0,8.942,2.892
+1,8.658,0.961,32240049042.0,1419321284.0,26528.611,34514.457,2108.033,1705.386,185.97,4.013,859.294,310.004
