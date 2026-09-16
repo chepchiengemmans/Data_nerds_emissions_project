@@ -186,3 +186,14 @@ Recursive forecasting error:  Forecasting driver variables over longer horizons 
 Uncertainty propagation: Uncertainty from the ARIMA/Prophet forecasts of the driver variables is not fully propagated into the final CO₂ prediction.
 - Country-level differences:  Country identity alone cannot fully capture differences in institutions, industrial structures, energy systems, and national climate policies
 
+## 10. Conclusion
+
+Ridge remains the strongest feature-based model
+- Test MAE 6.11, RMSE 32.62, R² 0.999 on 2019–2024, refit on the full 1950–2024 record for production
+ARIMA dominates feature forecasting
+- Non-CO₂ predictors are best forecast with ARIMA; Prophet wins only energy per capita.
+Forecasts are decision support, not certainty
+- China, the US and India dominate the 2025 outlook treat every number alongside its hold-out error.
+
+
+
