@@ -471,7 +471,7 @@ def main():
     metric_cols[3].metric("Selected CO2 model", results["best_model_name"])
 
     st.subheader("Feature-Based Model Comparison (Validation)")
-    st.dataframe(results["comparison"].round(3), width="stretch", hide_index=True)
+    st.dataframe(results["comparison"].round(3), use_container_width=True, hide_index=True)
     st.caption(
         f"Test metrics for {results['best_model_name']}: "
         f"MAE={results['test_metrics']['MAE']:.3f}, "
@@ -504,7 +504,7 @@ def main():
         pd.DataFrame(
             [{"Feature": feature, "Method": method_map.get(feature, "ARIMA")} for feature in future_feature_cols]
         ),
-        width="stretch",
+        use_container_width=True,
         hide_index=True,
     )
 
@@ -535,7 +535,7 @@ def main():
     chart_data = combined.pivot(index="year", columns="Type", values="predicted_co2 (million tons)")
     st.line_chart(chart_data)
 
-    st.dataframe(predictions.round(3), width="stretch", hide_index=True)
+    st.dataframe(predictions.round(3), use_container_width=True, hide_index=True)
 
     st.download_button(
         "Download country forecast CSV",
@@ -545,7 +545,7 @@ def main():
     )
 
     with st.expander("Forecasted future predictors used as model inputs"):
-        st.dataframe(feature_history.round(3), width="stretch", hide_index=True)
+        st.dataframe(feature_history.round(3), use_container_width=True, hide_index=True)
 
 
 if __name__ == "__main__":
