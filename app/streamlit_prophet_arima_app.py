@@ -377,8 +377,6 @@ def select_feature_forecast_methods(_df_cleaned, use_prophet, sample_size=15):
     return method_map, future_feature_cols
 
 
-# Stage 4: Recursive future CO2 forecasting for a single country
-
 def build_future_model_row(country, year, feature_history, co2_history, feature_cols):
     current = feature_history.loc[feature_history["year"] == year].iloc[0]
     prior_co2 = pd.Series(co2_history, dtype=float).sort_index()
@@ -442,7 +440,7 @@ def recursive_country_co2_forecast(country_df, target_year, model, feature_cols,
         row = build_future_model_row(country, year, feature_history, co2_history, feature_cols)
         prediction = float(np.maximum(model.predict(row)[0], 0))
         co2_history[year] = prediction
-        predictions.append({"country": country, "year": year, "predicted_co2": prediction})
+        predictions.append({"country": country, "year": year, "predicted_co2 (million tons)": prediction})
 
     return pd.DataFrame(predictions), feature_history
 
@@ -450,7 +448,7 @@ def recursive_country_co2_forecast(country_df, target_year, model, feature_cols,
 # App
 
 def main():
-    st.title("ARIMA Feature-Forecast CO2 Model")
+    st.title("CO2 Forecasting Dashboard")
     st.caption(
         "Two-stage country-level forecast based on "
         "Final_Notebook_Prophet_ARIMA_Feature_CO2_Forecast.ipynb: "
@@ -477,7 +475,7 @@ def main():
     st.caption(
         f"Test metrics for {results['best_model_name']}: "
         f"MAE={results['test_metrics']['MAE']:.3f}, "
-        f"RMSE={results['test_metrics']['RMSE']:.3f}, "
+        f"RMSE={results['test_metrics']['RMSE']:.3f} "
         #f"R2={results['test_metrics']['R2']:.3f}"
     )
 
@@ -528,13 +526,13 @@ def main():
 
     st.subheader(f"{country} CO2 Forecast Through {forecast_year}")
 
-    history = country_df[["year", "co2"]].dropna().rename(columns={"co2": "predicted_co2"})
+    history = country_df[["year", "co2"]].dropna().rename(columns={"co2": "predicted_co2 (million tons)"})
     history["Type"] = "Observed"
-    future = predictions[["year", "predicted_co2"]].copy()
+    future = predictions[["year", "predicted_co2 (million tons)"]].copy()
     future["Type"] = "Forecast"
     combined = pd.concat([history, future], ignore_index=True).sort_values("year")
 
-    chart_data = combined.pivot(index="year", columns="Type", values="predicted_co2")
+    chart_data = combined.pivot(index="year", columns="Type", values="predicted_co2 (million tons)")
     st.line_chart(chart_data)
 
     st.dataframe(predictions.round(3), width="stretch", hide_index=True)
