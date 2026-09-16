@@ -175,13 +175,14 @@ After deployment, monitor:
 
 Retraining should occur when new annual OWID data is released or when monitoring shows meaningful performance degradation.
 
-## 9. Limitations and Next Steps
+## 9. Limitations and Recommendations
 
-- The current notebook focuses on African countries in its modeling section, while the project introduction describes a broader country-level goal.
-- The data is annual, so the model cannot describe within-year changes.
-- Correlated emissions-source variables may make feature importance difficult to interpret causally.
-- Missing-value imputation can affect countries with sparse histories.
-- A single global model may not perform equally well for small and large emitters.
-- Multi-year forecasts would accumulate uncertainty and require recursive or direct multi-step validation.
+- Uneven historical coverage:  Historical CO₂ records vary considerably across countries, with some developing countries having shorter or less complete time series.
+- Missing data:  Several specialised indicators contain substantial missingness and were therefore excluded or conservatively imputed.
+- Structural breaks:  Sudden changes caused by economic shocks, major policy changes, conflicts, or technological shifts may lead to large forecasting errors.
+- Limited policy and technology variables:  Important factors such as carbon prices, renewable energy capacity, emissions regulations, and fossil fuel phase-out schedules are not directly represented.
+Recursive forecasting error:  Forecasting driver variables over longer horizons can introduce accumulated errors into the final CO₂ forecast.
+- Linear model assumption: Ridge Regression assumes approximately linear relationships and may not fully capture nonlinear relationships or interactions between economic, demographic, and energy variables.
+Uncertainty propagation: Uncertainty from the ARIMA/Prophet forecasts of the driver variables is not fully propagated into the final CO₂ prediction.
+- Country-level differences:  Country identity alone cannot fully capture differences in institutions, industrial structures, energy systems, and national climate policies
 
-Recommended next steps are to report country-level error distributions, compare against country-specific baselines, test rolling-origin validation, document the final model choice with recorded metrics, and decide whether the final product should cover Africa or all countries with valid data.
