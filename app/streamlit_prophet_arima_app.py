@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import altair as alt
 import streamlit as st
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor
@@ -533,9 +534,29 @@ def main():
     combined = pd.concat([history, future], ignore_index=True).sort_values("year")
 
     chart_data = combined.pivot(index="year", columns="Type", values="predicted_co2 (million tons)")
-    st.line_chart(chart_data)
+    chart = (
+        alt.Chart(chart_data.reset_index().melt(id_vars="year", var_name="Type", value_name="co2"))
+        .mark_line()
+        .encode(
+            x=alt.X("year:Q", title="Year", axis=alt.Axis(format="d")),
+            y=alt.Y("co2:Q", title="CO2 emissions (million tons)"),
+            color=alt.Color("Type:N", title="Series"),
+            tooltip=[
+                alt.Tooltip("year:Q", title="Year", format="d"),
+                alt.Tooltip("Type:N", title="Series"),
+                alt.Tooltip("co2:Q", title="CO2 emissions (million tons)", format=",.2f"),
+            ],
+        )
+        .properties(height=420)
+    )
+    st.altair_chart(chart, use_container_width=True)
 
-    st.dataframe(predictions.round(3), use_container_width=True, hide_index=True)
+    st.dataframe(
+        predictions.round(3),
+        column_config={"year": st.column_config.NumberColumn("Year", format="%d")},
+        use_container_width=True,
+        hide_index=True,
+    )
 
     st.download_button(
         "Download country forecast CSV",
