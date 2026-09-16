@@ -110,4 +110,9 @@ The notebook produces:
 - A strong aggregate score can hide poor performance for individual countries.
 - Forecasts are planning estimates, not exact future emissions values.
 
+## Conclusion
+- Ridge remains the strongest feature-based model
+- ARIMA dominates feature forecasting
+- Forecasts are decision support, not certainty
+
 See [`CRISP-DM.md`](CRISP-DM.md) for the fuller business-understanding, data-preparation, modeling, deployment, and maintenance documentation.
