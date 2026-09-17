@@ -428,12 +428,24 @@ def build_future_model_row(country, year, feature_history, co2_history, feature_
     return pd.DataFrame([{col: row.get(col, np.nan) for col in feature_cols}])
 
 # Stage 4: Recursive future CO2 forecasting for a single country simply put using the best feature-based CO2 model
-def recursive_country_co2_forecast(country_df, target_year, model, feature_cols, method_map, future_feature_cols):
+def recursive_country_co2_forecast(
+    country_df,
+    target_year,
+    model,
+    feature_cols,
+    method_map,
+    future_feature_cols,
+    manual_future_features=None,
+):
     country = country_df["country"].iloc[0]
     observed_co2 = country_df[["year", "co2"]].dropna().drop_duplicates("year").sort_values("year")
     co2_history = {int(r["year"]): float(r["co2"]) for _, r in observed_co2.iterrows()}
 
     feature_history = forecast_country_features(country_df, target_year, method_map, future_feature_cols)
+    if manual_future_features and target_year in feature_history["year"].values:
+        for feature, value in manual_future_features.items():
+            if feature in feature_history.columns:
+                feature_history.loc[feature_history["year"] == target_year, feature] = value
     last_observed = int(country_df["year"].max())
 
     predictions = []
@@ -450,6 +462,91 @@ def recursive_country_co2_forecast(country_df, target_year, model, feature_cols,
 
 def main():
     st.title("CO2 Forecasting Dashboard")
+    view = st.sidebar.radio(
+        "Navigate",
+        ["Forecast dashboard", "About"],# "Future feature inputs",
+        index=0,
+    )
+
+    # if view == "Future feature inputs":
+    #     st.header("Future feature inputs")
+    #     st.write(
+    #         "Enter values for the selected country and target year. Saved values override "
+    #         "the automatically forecast features for that target year."
+    #     )
+
+    #     input_data = clean_data(load_dataset())
+    #     input_countries = sorted(input_data["country"].unique())
+    #     input_country = st.selectbox("Country", input_countries, key="input_country")
+    #     input_latest_year = int(input_data["year"].max())
+    #     input_year = st.number_input(
+    #         "Target year",
+    #         min_value=input_latest_year + 1,
+    #         max_value=input_latest_year + 30,
+    #         value=input_latest_year + 5,
+    #         step=1,
+    #         format="%d",
+    #         key="input_year",
+    #     )
+
+    #     latest_country_row = (
+    #         input_data[input_data["country"] == input_country]
+    #         .sort_values("year")
+    #         .iloc[-1]
+    #     )
+    #     st.caption(
+    #         "Fields are prefilled with the latest available value for this country. "
+    #         "Edit them before saving."
+    #     )
+
+    #     feature_values = {}
+    #     input_columns = st.columns(2)
+    #     for index, feature in enumerate(RAW_FUTURE_FEATURES):
+    #         latest_value = latest_country_row.get(feature, np.nan)
+    #         default_value = float(latest_value) if pd.notna(latest_value) else 0.0
+    #         feature_values[feature] = input_columns[index % 2].number_input(
+    #             feature.replace("_", " ").title(),
+    #             value=default_value,
+    #             format="%.6f",
+    #             key=f"future_input_{input_country}_{int(input_year)}_{feature}",
+    #         )
+
+    #     if st.button("Save future feature inputs", type="primary"):
+    #         overrides = st.session_state.setdefault("future_feature_overrides", {})
+    #         overrides[(input_country, int(input_year))] = feature_values
+    #         st.success(f"Future feature inputs saved for {input_country} ({int(input_year)}).")
+    #     return
+
+    if view == "About":
+        st.header("About the CO2 Forecasting Dashboard")
+        st.write(
+            "This dashboard forecasts country-level CO2 emissions using annual data from "
+            "Our World in Data."
+        )
+        st.subheader("How it works")
+        st.markdown(
+            """
+            1. Historical economic, population, energy, and emissions data are cleaned and transformed.
+            2. Prophet or ARIMA forecasts future input features.
+            3. A machine-learning model produces the recursive CO2 forecast for the selected country.
+            """
+        )
+        st.subheader("Models")
+        st.write(
+            "The app compares Ridge Regression, Random Forest, Extra Trees, and "
+            "HistGradientBoosting models using chronological validation data."
+        )
+        st.subheader("Data and limitations")
+        st.markdown(
+            """
+            - Source: Our World in Data CO2 dataset.
+            - Coverage: country-level annual observations from the locally bundled CSV file.
+            - Forecasts are planning estimates, not guarantees.
+            - Results depend on the source data and future-feature projections.
+            """
+        )
+        return
+
     st.caption(
         "Two-stage country-level forecast based on "
         "Final_Notebook_Prophet_ARIMA_Feature_CO2_Forecast.ipynb: "
@@ -510,6 +607,9 @@ def main():
     )
 
     country_df = df_cleaned[df_cleaned["country"] == country].copy()
+    manual_overrides = st.session_state.get("future_feature_overrides", {}).get(
+        (country, int(forecast_year))
+    )
 
     with st.spinner(f"Forecasting {country} through {forecast_year}..."):
         predictions, feature_history = recursive_country_co2_forecast(
@@ -519,6 +619,7 @@ def main():
             feature_cols=results["feature_cols"],
             method_map=method_map,
             future_feature_cols=future_feature_cols,
+            manual_future_features=manual_overrides,
         )
 
     if predictions.empty:
